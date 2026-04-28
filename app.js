@@ -11,7 +11,7 @@ const CATALOG = [
     emoji: "🛋️",
     tag: "Bestseller",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#8B6914"
+    color: "#C9A84C"
   },
   {
     id: 2,
@@ -24,7 +24,7 @@ const CATALOG = [
     emoji: "🪑",
     tag: "New",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#2C5F5D"
+    color: "#2DD4BF"
   },
   {
     id: 3,
@@ -37,7 +37,7 @@ const CATALOG = [
     emoji: "🪵",
     tag: "Popular",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#5C3D1E"
+    color: "#92603A"
   },
   {
     id: 4,
@@ -50,7 +50,7 @@ const CATALOG = [
     emoji: "📚",
     tag: "Premium",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#1A1A2E"
+    color: "#4A6FA5"
   },
   {
     id: 5,
@@ -63,7 +63,7 @@ const CATALOG = [
     emoji: "💡",
     tag: "New",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#4A3728"
+    color: "#C9A84C"
   },
   {
     id: 6,
@@ -76,7 +76,7 @@ const CATALOG = [
     emoji: "🌿",
     tag: "Trending",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#1B4332"
+    color: "#2D6A4F"
   },
   {
     id: 7,
@@ -89,7 +89,7 @@ const CATALOG = [
     emoji: "🍽️",
     tag: "Premium",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#3D2B1F"
+    color: "#8B5E3C"
   },
   {
     id: 8,
@@ -102,15 +102,15 @@ const CATALOG = [
     emoji: "🛏️",
     tag: "Luxury",
     model: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    color: "#4A1942"
+    color: "#7B2D8B"
   }
 ];
 
 // ── STATE ──
-let selectedItem     = null;
-let cart             = [];
-let itemViewedAt     = null;
-let riskTimer        = null;
+let selectedItem = null;
+let cart         = [];
+let itemViewedAt = null;
+let riskTimer    = null;
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -129,8 +129,20 @@ function renderCatalog() {
       id="card-${item.id}"
       onclick="selectItem(${item.id})"
     >
-      <div class="catalog-card-img-placeholder" style="background:${item.color}55">
-        <span style="font-size:80px">${item.emoji}</span>
+      <div class="catalog-card-img-placeholder"
+        style="
+          background: linear-gradient(135deg, ${item.color}99 0%, ${item.color}44 100%);
+          border-bottom: 1px solid ${item.color}33;
+        "
+      >
+        <span style="
+          font-size: 90px;
+          line-height: 1;
+          display: block;
+          filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
+          transform: translateY(4px);
+          transition: transform 0.4s ease;
+        ">${item.emoji}</span>
       </div>
       <div class="catalog-card-body">
         <div class="catalog-card-name">${item.name}</div>
@@ -176,10 +188,8 @@ function selectItem(id) {
     if (placeholder) placeholder.style.display = 'none';
   }
 
-  // Update selected info
+  // Update panels
   updateSelectedInfo(item);
-
-  // Show quick add
   updateQuickAdd(item);
 
   // Reset fit result
@@ -195,10 +205,11 @@ function selectItem(id) {
   // Show toast
   showToast(`${item.emoji} ${item.name} loaded in AR viewer`);
 
-  // Scroll to AR studio
+  // Smooth scroll to AR studio
   setTimeout(() => {
     document.getElementById('ar-studio')?.scrollIntoView({
-      behavior: 'smooth', block: 'start'
+      behavior: 'smooth',
+      block: 'start'
     });
   }, 300);
 }
@@ -210,7 +221,11 @@ function updateSelectedInfo(item) {
 
   info.innerHTML = `
     <div class="selected-item-info">
-      <div style="font-size:48px;margin-bottom:8px">${item.emoji}</div>
+      <div style="
+        font-size: 52px;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+      ">${item.emoji}</div>
       <div class="selected-item-name">${item.name}</div>
       <div class="selected-item-dims">${item.dimsDisplay}</div>
       <div class="selected-item-price">${item.priceDisplay}</div>
@@ -227,7 +242,7 @@ function updateQuickAdd(item) {
 
   info.innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-      <span style="font-size:32px">${item.emoji}</span>
+      <span style="font-size:36px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.3))">${item.emoji}</span>
       <div>
         <div style="font-size:15px;color:var(--white);margin-bottom:4px">${item.name}</div>
         <div style="font-family:var(--font-display);font-size:22px;color:var(--gold)">${item.priceDisplay}</div>
@@ -257,7 +272,7 @@ function checkFit() {
   const itemD    = item.dims.d;
   const clearW   = roomW - itemW;
   const clearD   = roomL - itemD;
-  const minClear = 0.6; // minimum walkway clearance in metres
+  const minClear = 0.6;
 
   const fitResult = document.getElementById('fit-result');
   if (!fitResult) return;
@@ -265,7 +280,6 @@ function checkFit() {
   fitResult.classList.remove('hidden', 'fit-pass', 'fit-fail', 'fit-warn');
 
   if (clearW < 0 || clearD < 0) {
-    // Item is too large
     fitResult.classList.add('fit-fail');
     fitResult.innerHTML = `
       <span class="fit-result-icon">✗</span>
@@ -279,7 +293,6 @@ function checkFit() {
       <br/>Consider a smaller alternative or a different wall placement.
     `;
   } else if (clearW < minClear || clearD < minClear) {
-    // Fits but tight
     fitResult.classList.add('fit-warn');
     fitResult.innerHTML = `
       <span class="fit-result-icon">⚠</span>
@@ -289,7 +302,6 @@ function checkFit() {
       Minimum recommended walkway is 60cm. This may feel cramped.
     `;
   } else {
-    // Perfect fit
     fitResult.classList.add('fit-pass');
     fitResult.innerHTML = `
       <span class="fit-result-icon">✓</span>
@@ -305,21 +317,19 @@ function checkFit() {
 function startRiskTimer(item) {
   if (riskTimer) clearTimeout(riskTimer);
 
-  const riskCard = document.getElementById('risk-card');
+  const riskCard   = document.getElementById('risk-card');
   const riskResult = document.getElementById('risk-result');
   if (!riskCard || !riskResult) return;
 
   riskCard.style.display = 'none';
 
-  // Show risk after 8 seconds of viewing
   riskTimer = setTimeout(() => {
     const dwellTime = (Date.now() - itemViewedAt) / 1000;
-    let riskClass, riskHTML;
+    let riskHTML;
 
     if (dwellTime < 15) {
-      riskClass = 'risk-high';
       riskHTML = `
-        <div class="${riskClass}">
+        <div class="risk-high">
           <strong style="display:block;margin-bottom:8px">⚠ Review carefully before buying</strong>
           You've viewed this item for under 15 seconds.
           High return risk detected — take a moment to check it
@@ -327,18 +337,16 @@ function startRiskTimer(item) {
         </div>
       `;
     } else if (dwellTime < 45) {
-      riskClass = 'risk-medium';
       riskHTML = `
-        <div class="${riskClass}">
+        <div class="risk-medium">
           <strong style="display:block;margin-bottom:8px">◎ Moderate confidence</strong>
           You're spending time reviewing this piece — good sign.
           Try the Fit Checker above to confirm dimensions before ordering.
         </div>
       `;
     } else {
-      riskClass = 'risk-low';
       riskHTML = `
-        <div class="${riskClass}">
+        <div class="risk-low">
           <strong style="display:block;margin-bottom:8px">✓ High purchase confidence</strong>
           You've reviewed this item thoroughly.
           You're making an informed decision — great choice!
@@ -378,7 +386,7 @@ function removeFromCart(id) {
 }
 
 function updateCartUI() {
-  const count = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
+  const count   = cart.reduce((sum, i) => sum + (i.qty || 1), 0);
   const countEl = document.getElementById('cart-count');
   if (countEl) countEl.textContent = count;
 }
@@ -389,7 +397,10 @@ function renderCartItems() {
   if (!container) return;
 
   if (cart.length === 0) {
-    container.innerHTML = `<p class="muted-text" style="padding:24px 0;text-align:center">Your cart is empty</p>`;
+    container.innerHTML = `
+      <p class="muted-text" style="padding:24px 0;text-align:center">
+        Your cart is empty
+      </p>`;
     if (totalEl) totalEl.textContent = '₹0';
     return;
   }
