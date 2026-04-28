@@ -10,20 +10,19 @@ export default async function handler(req, res) {
   const TOKEN = process.env.REPLICATE_TOKEN;
 
   try {
-    const response = await fetch('https://api.replicate.com/v1/models/stability-ai/stable-fast-3d/predictions', {
+    const response = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
       headers: {
         'Authorization': `Token ${TOKEN}`,
         'Content-Type': 'application/json',
-        'Prefer': 'wait'
       },
       body: JSON.stringify({
-        input: {
-          image,
-          texture_resolution: '1024',
-          foreground_ratio: 0.85
-        }
-      })
+  version: 'a46a50580608a1db11a1f459cf1b1a9b7ae7e7de7a32b7c3834f09be7bbe9c18',
+  input: {
+    image,
+    foreground_ratio: 0.85
+  }
+})
     });
 
     const data = await response.json();
