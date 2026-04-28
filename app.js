@@ -129,8 +129,8 @@ function renderCatalog() {
       id="card-${item.id}"
       onclick="selectItem(${item.id})"
     >
-      <div class="catalog-card-img-placeholder" style="background:${item.color}22">
-        <span style="font-size:72px">${item.emoji}</span>
+      <div class="catalog-card-img-placeholder" style="background:${item.color}55">
+        <span style="font-size:80px">${item.emoji}</span>
       </div>
       <div class="catalog-card-body">
         <div class="catalog-card-name">${item.name}</div>
