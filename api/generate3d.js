@@ -10,22 +10,25 @@ export default async function handler(req, res) {
   const TOKEN = process.env.REPLICATE_TOKEN;
 
   try {
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
+    // Use model name directly — no version hash needed
+    const response = await fetch('https://api.replicate.com/v1/models/camenduru/tripo-sr/predictions', {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${TOKEN}`,
+        'Authorization': `Bearer ${TOKEN}`,
         'Content-Type': 'application/json',
+        'Prefer': 'wait=60'
       },
       body: JSON.stringify({
-  version: 'a46a50580608a1db11a1f459cf1b1a9b7ae7e7de7a32b7c3834f09be7bbe9c18',
-  input: {
-    image,
-    foreground_ratio: 0.85
-  }
-})
+        input: {
+          image: image,
+          do_remove_background: true,
+          foreground_ratio: 0.85
+        }
+      })
     });
 
     const data = await response.json();
+    console.log('Replicate response:', JSON.stringify(data));
     res.status(200).json(data);
 
   } catch (err) {
