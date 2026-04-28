@@ -153,10 +153,10 @@ async function generateModel() {
 
     // Call our serverless proxy — no CORS issues
     const response = await fetch('/api/generate3d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: uploadedImageBase64 })
-    });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ image: uploadedImageBase64 })
+});
 
     const data = await response.json();
     console.log('API response:', JSON.stringify(data));
