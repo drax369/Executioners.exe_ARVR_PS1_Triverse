@@ -1,5 +1,4 @@
 // ── IMAGE TO 3D FEATURE ──
-const REPLICATE_TOKEN = window.__ENV__?.REPLICATE_TOKEN || ''; // paste your full token here
 
 // ── INJECT UI INTO APP PAGE ──
 document.addEventListener('DOMContentLoaded', () => {
@@ -124,9 +123,8 @@ function processImageFile(file) {
   reader.onload = (e) => {
     uploadedImageBase64 = e.target.result;
 
-    // Show preview
-    document.getElementById('i3d-preview-img').src = uploadedImageBase64;
-    document.getElementById('i3d-drop-zone').style.display    = 'none';
+    document.getElementById('i3d-preview-img').src             = uploadedImageBase64;
+    document.getElementById('i3d-drop-zone').style.display     = 'none';
     document.getElementById('i3d-preview-panel').style.display = 'flex';
     document.getElementById('i3d-result').style.display        = 'none';
 
@@ -143,96 +141,98 @@ async function generateModel() {
   }
 
   const btn = document.getElementById('i3d-generate-btn');
-  btn.disabled = true;
+  btn.disabled    = true;
   btn.textContent = 'Generating...';
 
   setStatus('loading', 'Sending image to AI...');
   showProgress(true);
+  animateProgress(20);
 
   try {
-    // Step 1 — Create prediction
     setStatus('loading', 'Analysing image structure...');
-    animateProgress(20);
 
-    const response = await fetch('https://api.replicate.com/v1/models/stability-ai/stable-fast-3d/predictions', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Token ${REPLICATE_TOKEN}`,
-    'Content-Type': 'application/json',
-    'Prefer': 'wait'
-  },
-  body: JSON.stringify({
-    input: {
-      image: uploadedImageBase64,
-      texture_resolution: '1024',
-      foreground_ratio: 0.85
-    }
-  })
-});
+    // Call our serverless proxy — no CORS issues
+    const response = await fetch('/api/generate3d', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: uploadedImageBase64 })
+    });
 
-    const prediction = await response.json();
-    console.log('Replicate response:', JSON.stringify(prediction));
+    const data = await response.json();
+    console.log('API response:', JSON.stringify(data));
 
-    if (!prediction.id) {
-      throw new Error(prediction.detail || 'Failed to start generation');
+    if (!data || data.error) {
+      throw new Error(data?.error || 'No response from API');
     }
 
-    // Step 2 — Poll for result
-    setStatus('loading', 'Building 3D geometry...');
-    animateProgress(50);
+    // stable-fast-3d with 'Prefer: wait' returns output directly
+    if (data.output) {
+      generatedModelUrl = Array.isArray(data.output) ? data.output[0] : data.output;
+      animateProgress(100);
+      setStatus('success', '3D model generated successfully!');
+      setTimeout(() => {
+        document.getElementById('i3d-preview-panel').style.display = 'none';
+        document.getElementById('i3d-result').style.display        = 'block';
+        showProgress(false);
+      }, 800);
+      return;
+    }
 
-    const modelUrl = await pollPrediction(prediction.id);
-    generatedModelUrl = modelUrl;
+    // Fallback — if API returns an id, poll for result
+    if (data.id) {
+      setStatus('loading', 'Building 3D geometry...');
+      animateProgress(50);
+      const modelUrl = await pollPrediction(data.id);
+      generatedModelUrl = modelUrl;
+      animateProgress(100);
+      setStatus('success', '3D model generated successfully!');
+      setTimeout(() => {
+        document.getElementById('i3d-preview-panel').style.display = 'none';
+        document.getElementById('i3d-result').style.display        = 'block';
+        showProgress(false);
+      }, 800);
+      return;
+    }
 
-    animateProgress(100);
-    setStatus('success', '3D model generated successfully!');
-
-    setTimeout(() => {
-      document.getElementById('i3d-preview-panel').style.display = 'none';
-      document.getElementById('i3d-result').style.display = 'block';
-      showProgress(false);
-    }, 800);
+    throw new Error('Unexpected response format');
 
   } catch (err) {
-  console.error('Full error:', err);
-  setStatus('error', `Error: ${err.message}`);
-  showProgress(false);
-  btn.disabled = false;
-  btn.textContent = 'Try Again';
-}
+    console.error('Full error:', err);
+    setStatus('error', `Error: ${err.message}`);
+    showProgress(false);
+    btn.disabled    = false;
+    btn.textContent = 'Try Again';
+  }
 }
 
-// ── POLL FOR RESULT ──
+// ── POLL FOR RESULT (fallback) ──
 async function pollPrediction(id) {
   const maxAttempts = 60;
-  let attempts = 0;
+  let attempts      = 0;
 
   while (attempts < maxAttempts) {
     await sleep(3000);
     attempts++;
 
-    const res  = await fetch(`https://api.replicate.com/v1/predictions/${id}`, {
-      headers: { 'Authorization': `Token ${REPLICATE_TOKEN}` }
-    });
+    const res  = await fetch(`/api/poll3d?id=${id}`);
     const data = await res.json();
 
+    console.log(`Poll attempt ${attempts}:`, data.status);
+
     if (data.status === 'succeeded') {
-      // TripoSR returns mesh url
-      const output = Array.isArray(data.output) ? data.output[0] : data.output;
-      return output;
+      return Array.isArray(data.output) ? data.output[0] : data.output;
     }
 
     if (data.status === 'failed') {
-      throw new Error('Model generation failed');
+      throw new Error('Model generation failed on server');
     }
 
-    // Update progress
     const progress = Math.min(50 + (attempts / maxAttempts) * 45, 95);
     animateProgress(progress);
     setStatus('loading', getLoadingMessage(attempts));
   }
 
-  throw new Error('Generation timed out');
+  throw new Error('Generation timed out after 3 minutes');
 }
 
 function getLoadingMessage(attempt) {
@@ -258,7 +258,6 @@ function loadGeneratedModel() {
     if (placeholder) placeholder.style.display = 'none';
   }
 
-  // Update selected info panel
   const info = document.getElementById('selected-info');
   if (info) {
     info.innerHTML = `
@@ -273,7 +272,6 @@ function loadGeneratedModel() {
 
   showToast('📸 Custom 3D model loaded in AR viewer');
 
-  // Scroll to AR studio
   setTimeout(() => {
     document.getElementById('ar-studio')?.scrollIntoView({
       behavior: 'smooth',
@@ -302,7 +300,7 @@ function setStatus(type, message) {
   const text = document.getElementById('i3d-status-text');
   if (!icon || !text) return;
 
-  const icons = { idle: '◎', loading: '◌', success: '✓', error: '✗' };
+  const icons  = { idle: '◎', loading: '◌', success: '✓', error: '✗' };
   const colors = {
     idle:    'var(--white-30)',
     loading: 'var(--gold)',
@@ -310,10 +308,10 @@ function setStatus(type, message) {
     error:   '#ff6b6b'
   };
 
-  icon.textContent  = icons[type]  || '◎';
-  icon.style.color  = colors[type] || 'var(--white-30)';
-  text.textContent  = message;
-  text.style.color  = colors[type] || 'var(--white-60)';
+  icon.textContent = icons[type]  || '◎';
+  icon.style.color = colors[type] || 'var(--white-30)';
+  text.textContent = message;
+  text.style.color = colors[type] || 'var(--white-60)';
 }
 
 function showProgress(show) {
