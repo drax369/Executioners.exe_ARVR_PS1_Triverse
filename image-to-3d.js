@@ -154,21 +154,21 @@ async function generateModel() {
     setStatus('loading', 'Analysing image structure...');
     animateProgress(20);
 
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${REPLICATE_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        version: '851e4a2c7e38457c9e24b5e49b642be9c3bccd72d0cc2f3a17699c4e6fd77de6',
-        input: {
-          image: uploadedImageBase64,
-          do_remove_background: true,
-          foreground_ratio: 0.85
-        }
-      })
-    });
+    const response = await fetch('https://api.replicate.com/v1/models/stability-ai/stable-fast-3d/predictions', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Token ${REPLICATE_TOKEN}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'wait'
+  },
+  body: JSON.stringify({
+    input: {
+      image: uploadedImageBase64,
+      texture_resolution: '1024',
+      foreground_ratio: 0.85
+    }
+  })
+});
 
     const prediction = await response.json();
 
