@@ -131,6 +131,14 @@ function setupModelViewerEvents() {
     }
   });
 
+  // Fallback: listen for slot button click without blocking AR launch
+  const slotBtn = document.getElementById('ar-slot-btn');
+  if (slotBtn) {
+    slotBtn.addEventListener('click', () => {
+      setTimeout(onARLaunched, 1500);
+    });
+  }
+
   viewer.addEventListener('load', () => {
     console.log('✓ 3D model loaded:', viewer.src);
   });
