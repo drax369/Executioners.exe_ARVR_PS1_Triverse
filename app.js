@@ -127,24 +127,22 @@ function setupModelViewerEvents() {
 
   viewer.addEventListener('ar-status', (e) => {
     if (e.detail.status === 'session-started') {
-      onARLaunched();
+      // AR is live — show screenshot/share bar
+      const actionBar = document.getElementById('ar-action-bar');
+      if (actionBar) actionBar.style.display = 'flex';
+    }
+    if (e.detail.status === 'not-presenting') {
+      // User exited AR — hide the bar
+      const actionBar = document.getElementById('ar-action-bar');
+      if (actionBar) actionBar.style.display = 'none';
     }
   });
-
-  // Fallback: listen for slot button click without blocking AR launch
-  const slotBtn = document.getElementById('ar-slot-btn');
-  if (slotBtn) {
-    slotBtn.addEventListener('click', () => {
-      setTimeout(onARLaunched, 1500);
-    });
-  }
 
   viewer.addEventListener('load', () => {
     console.log('✓ 3D model loaded:', viewer.src);
   });
 
-  viewer.addEventListener('error', (e) => {
-    console.error('Model failed to load:', e);
+  viewer.addEventListener('error', () => {
     viewer.src = 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
   });
 }
