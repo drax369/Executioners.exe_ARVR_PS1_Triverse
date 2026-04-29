@@ -208,9 +208,10 @@ model-viewer {
 /* ── AR LAUNCH BUTTON (slot inside model-viewer) ── */
 .ar-launch-btn {
   position: absolute;
-  bottom: 80px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
+  max-width: calc(100% - 48px);
   background: var(--gold);
   color: var(--black);
   border: none;
