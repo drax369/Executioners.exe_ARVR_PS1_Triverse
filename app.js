@@ -397,52 +397,34 @@ function startRiskTimer(item) {
 }
 
 // ── SCREENSHOT ──
-async function captureRoom() {
-  const viewer = document.querySelector('.ar-viewer-wrap');
-  if (!viewer) {
-    showToast('Nothing to capture yet');
-    return;
-  }
-
-  showToast('📸 Capturing your room...');
-
-  try {
-    const canvas = await html2canvas(viewer, {
-      backgroundColor: '#0d0d0d',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      ignoreElements: (el) => el.id === 'ar-action-bar' || el.id === 'ar-fallback-bar'
-    });
-
-    const itemName = selectedItem?.name || 'Room';
-    const link = document.createElement('a');
-    link.download = `SpaceViz-${itemName.replace(/\s+/g, '-')}-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-
-    showToast(`✓ Screenshot saved as "${link.download}"`);
-  } catch (err) {
-    console.error('Screenshot error:', err);
-    showToast('Screenshot failed — please try again');
-  }
+function captureRoom() {
+  showToast('📸 Use your phone\'s screenshot button to capture your AR room!');
+  
+  // After 2 seconds, offer to share the link
+  setTimeout(() => {
+    const itemName = selectedItem?.name || 'furniture';
+    if (navigator.share) {
+      navigator.share({
+        title: `SpaceViz — ${itemName} in AR`,
+        text: `I just placed the ${itemName} in my actual room using SpaceViz AR — no app needed! Try it yourself:`,
+        url: window.location.href
+      }).catch(() => {});
+    }
+  }, 2000);
 }
 
-// ── SHARE ──
 function shareRoom() {
   const itemName = selectedItem?.name || 'furniture';
-  const shareText = `Check out the ${itemName} I found on SpaceViz AR! No app needed — just open the link and see it in your room. ${window.location.href}`;
+  const shareText = `Check out the ${itemName} I found on SpaceViz AR! No app needed — just open the link and see it in your room.`;
 
   if (navigator.share) {
     navigator.share({
       title: `SpaceViz — ${itemName} in AR`,
       text: shareText,
       url: window.location.href
-    }).catch(() => {
-      // User cancelled share — that's fine
-    });
+    }).catch(() => {});
   } else {
-    navigator.clipboard.writeText(shareText).then(() => {
+    navigator.clipboard.writeText(`${shareText} ${window.location.href}`).then(() => {
       showToast('🔗 Share link copied to clipboard!');
     }).catch(() => {
       showToast('🔗 Copy this link: ' + window.location.href);
