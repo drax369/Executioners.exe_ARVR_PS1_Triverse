@@ -397,41 +397,73 @@ function startRiskTimer(item) {
 }
 
 // ── SCREENSHOT ──
-function captureRoom() {
-  showToast('📸 Use your phone\'s screenshot button to capture your AR room!');
+async function captureRoom() {
+  showToast('📸 Taking screenshot...');
   
-  // After 2 seconds, offer to share the link
-  setTimeout(() => {
-    const itemName = selectedItem?.name || 'furniture';
-    if (navigator.share) {
-      navigator.share({
-        title: `SpaceViz — ${itemName} in AR`,
-        text: `I just placed the ${itemName} in my actual room using SpaceViz AR — no app needed! Try it yourself:`,
-        url: window.location.href
-      }).catch(() => {});
-    }
-  }, 2000);
+  try {
+    // Capture the screen using Screen Capture API
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { mediaSource: 'screen' },
+      preferCurrentTab: true
+    });
+    
+    const track = stream.getVideoTracks()[0];
+    const imageCapture = new ImageCapture(track);
+    const bitmap = await imageCapture.grabFrame();
+    
+    // Stop the stream immediately
+    track.stop();
+    
+    // Convert to canvas then blob
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0);
+    
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], `SpaceViz-AR-${Date.now()}.png`, { type: 'image/png' });
+      
+      // Try to share the actual image file
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `SpaceViz AR — ${selectedItem?.name || 'Furniture'}`,
+          text: 'I placed this furniture in my actual room using SpaceViz AR!'
+        });
+      } else {
+        // Fallback — download the image
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `SpaceViz-AR-${Date.now()}.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showToast('✓ Screenshot downloaded!');
+      }
+    }, 'image/png');
+    
+  } catch (err) {
+    // User denied screen capture — fall back to native screenshot prompt
+    showToast('📸 Press your phone\'s side buttons to screenshot, then use 🔗 to share!');
+  }
 }
 
 function shareRoom() {
   const itemName = selectedItem?.name || 'furniture';
-  const shareText = `Check out the ${itemName} I found on SpaceViz AR! No app needed — just open the link and see it in your room.`;
-
+  
   if (navigator.share) {
     navigator.share({
       title: `SpaceViz — ${itemName} in AR`,
-      text: shareText,
+      text: `I placed the ${itemName} in my actual room using SpaceViz AR — no app needed! Try it yourself:`,
       url: window.location.href
     }).catch(() => {});
   } else {
-    navigator.clipboard.writeText(`${shareText} ${window.location.href}`).then(() => {
-      showToast('🔗 Share link copied to clipboard!');
-    }).catch(() => {
-      showToast('🔗 Copy this link: ' + window.location.href);
+    navigator.clipboard.writeText(`Check out SpaceViz AR: ${window.location.href}`).then(() => {
+      showToast('🔗 Link copied!');
     });
   }
 }
-
 // ── CART ──
 function addCurrentToCart() {
   if (!selectedItem) {
