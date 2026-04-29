@@ -155,9 +155,10 @@ const CATALOG = [
 ];
 
 // ── STATE ──
-let roomItems = [];
 let selectedItem = null;
 let cart         = [];
+let roomItems    = [];
+let compareItems = [];
 let itemViewedAt = null;
 let riskTimer    = null;
 let arLaunched   = false;
@@ -176,12 +177,10 @@ function setupModelViewerEvents() {
 
   viewer.addEventListener('ar-status', (e) => {
     if (e.detail.status === 'session-started') {
-      // AR is live — show screenshot/share bar
       const actionBar = document.getElementById('ar-action-bar');
       if (actionBar) actionBar.style.display = 'flex';
     }
     if (e.detail.status === 'not-presenting') {
-      // User exited AR — hide the bar
       const actionBar = document.getElementById('ar-action-bar');
       if (actionBar) actionBar.style.display = 'none';
     }
@@ -253,12 +252,11 @@ function selectItem(id) {
   const viewer = document.getElementById('ar-model');
   if (viewer) {
     viewer.src = item.model;
-    // Hide placeholder
     const placeholder = document.getElementById('ar-placeholder');
     if (placeholder) placeholder.style.display = 'none';
   }
 
-  // Hide screenshot bar (only show after AR launch)
+  // Hide share bar
   const actionBar = document.getElementById('ar-action-bar');
   if (actionBar) actionBar.style.display = 'none';
 
@@ -284,9 +282,11 @@ function selectItem(id) {
   // Start return risk timer
   startRiskTimer(item);
 
-  // Toast
+  // Add to room & comparison
   addToRoom(item);
-showToast(`${item.emoji} ${item.name} added to room — click "Launch in Your Room" for AR`);
+  addToComparison(item);
+
+  showToast(`${item.emoji} ${item.name} added to room — click "Launch in Your Room" for AR`);
 
   // Smooth scroll to AR studio
   setTimeout(() => {
@@ -294,19 +294,17 @@ showToast(`${item.emoji} ${item.name} added to room — click "Launch in Your Ro
   }, 300);
 }
 
-// ── ON AR LAUNCHED (called when user taps the AR button) ──
+// ── ON AR LAUNCHED ──
 function onARLaunched() {
   arLaunched = true;
 
-  // Hide fallback button
   const fallbackBar = document.getElementById('ar-fallback-bar');
   if (fallbackBar) fallbackBar.style.display = 'none';
 
-  // Show screenshot/share bar after a short delay (so AR session starts first)
   setTimeout(() => {
     const actionBar = document.getElementById('ar-action-bar');
     if (actionBar) actionBar.style.display = 'flex';
-    showToast('📸 AR active — tap Screenshot to capture your room!');
+    showToast('📸 AR active — tap Share to share your room!');
   }, 1500);
 }
 
@@ -343,20 +341,17 @@ function updateSelectedInfo(item) {
   `;
 }
 
+// ── APPLY COLOUR ──
 function applyColour(itemId, hex, name, btn) {
-  // Update active dot
   document.querySelectorAll('.colour-dot').forEach(d => d.classList.remove('active'));
   btn.classList.add('active');
 
-  // Update label
   const label = document.getElementById('colour-label');
   if (label) label.textContent = name;
 
-  // Apply colour to model-viewer material
   const viewer = document.getElementById('ar-model');
   if (!viewer) return;
 
-  // Convert hex to RGB 0-1 range
   const r = parseInt(hex.slice(1,3), 16) / 255;
   const g = parseInt(hex.slice(3,5), 16) / 255;
   const b = parseInt(hex.slice(5,7), 16) / 255;
@@ -488,7 +483,7 @@ function startRiskTimer(item) {
   }, 8000);
 }
 
-// ── SCREENSHOT ──
+// ── SHARE AR VIEW ──
 function shareARView() {
   const itemName = selectedItem?.name || 'furniture';
   const price = selectedItem?.priceDisplay || '';
@@ -505,6 +500,7 @@ function shareARView() {
     ).then(() => showToast('🔗 Share text copied!'));
   }
 }
+
 // ── CART ──
 function addCurrentToCart() {
   if (!selectedItem) {
@@ -616,17 +612,16 @@ function showToast(message) {
     toast.classList.add('hidden');
   }, 3500);
 }
+
 // ── ROOM BUILDER ──
 function addToRoom(item) {
   const existing = roomItems.find(r => r.id === item.id);
   if (existing) {
-    showToast(`${item.emoji} ${item.name} is already in your room`);
-    return;
+    return; // silently skip — toast shown by selectItem
   }
 
   roomItems.push(item);
   updateRoomUI();
-  showToast(`${item.emoji} ${item.name} added to room`);
 }
 
 function removeFromRoom(id) {
@@ -635,10 +630,10 @@ function removeFromRoom(id) {
 }
 
 function updateRoomUI() {
-  const list    = document.getElementById('room-items-list');
-  const footer  = document.getElementById('room-footer');
-  const count   = document.getElementById('room-item-count');
-  const total   = document.getElementById('room-total');
+  const list   = document.getElementById('room-items-list');
+  const footer = document.getElementById('room-footer');
+  const count  = document.getElementById('room-item-count');
+  const total  = document.getElementById('room-total');
   if (!list) return;
 
   count.textContent = `${roomItems.length} item${roomItems.length !== 1 ? 's' : ''}`;
@@ -676,6 +671,161 @@ function clearRoom() {
   updateRoomUI();
   showToast('Room cleared');
 }
+
+// ── BUDGET PLANNER ──
+function updateBudgetPlanner() {
+  const budget = parseInt(document.getElementById('budget-input')?.value) || 0;
+  const results = document.getElementById('budget-results');
+  if (!results) return;
+
+  if (!budget || budget < 1000) {
+    results.innerHTML = `<p class="muted-text">Enter your budget to see what fits</p>`;
+    return;
+  }
+
+  const affordable = CATALOG.filter(i => i.price <= budget).sort((a, b) => b.price - a.price);
+
+  // Find best combo that fits within budget
+  let best = [], bestTotal = 0;
+  for (let i = 0; i < CATALOG.length; i++) {
+    let combo = [CATALOG[i]];
+    let total = CATALOG[i].price;
+    for (let j = 0; j < CATALOG.length; j++) {
+      if (j !== i && total + CATALOG[j].price <= budget) {
+        combo.push(CATALOG[j]);
+        total += CATALOG[j].price;
+      }
+    }
+    if (total > bestTotal) { best = combo; bestTotal = total; }
+  }
+
+  if (affordable.length === 0) {
+    results.innerHTML = `<div style="padding:12px;background:rgba(239,68,68,0.1);border-radius:10px;color:#EF4444;font-size:13px;">No items fit within ₹${budget.toLocaleString('en-IN')}</div>`;
+    return;
+  }
+
+  results.innerHTML = `
+    <div style="margin-bottom:10px;font-size:12px;color:var(--white-30);">${affordable.length} item${affordable.length!==1?'s':''} within budget</div>
+    ${affordable.slice(0,4).map(item => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:20px">${item.emoji}</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;color:var(--white)">${item.name}</div>
+          <div style="font-size:12px;color:var(--gold);font-family:var(--font-display)">${item.priceDisplay}</div>
+        </div>
+        <div style="font-size:11px;color:#4ADE80">✓ Fits</div>
+      </div>
+    `).join('')}
+    ${best.length > 1 ? `
+    <div style="margin-top:12px;padding:10px;background:rgba(201,168,76,0.08);border-radius:10px;border:1px solid rgba(201,168,76,0.2);">
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Best Combo</div>
+      <div style="font-size:13px;color:var(--white)">${best.map(i=>i.emoji+' '+i.name).join(' + ')}</div>
+      <div style="font-size:12px;color:var(--gold);margin-top:4px;font-family:var(--font-display)">₹${bestTotal.toLocaleString('en-IN')} / ₹${budget.toLocaleString('en-IN')}</div>
+      <button onclick="applyBestCombo()" style="margin-top:8px;width:100%;padding:8px;background:var(--gold);color:var(--black);border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Add Best Combo to Room</button>
+    </div>` : ''}
+  `;
+}
+
+function applyBestCombo() {
+  const budget = parseInt(document.getElementById('budget-input')?.value) || 0;
+  let best = [], bestTotal = 0;
+  for (let i = 0; i < CATALOG.length; i++) {
+    let combo = [CATALOG[i]], total = CATALOG[i].price;
+    for (let j = 0; j < CATALOG.length; j++) {
+      if (j !== i && total + CATALOG[j].price <= budget) { combo.push(CATALOG[j]); total += CATALOG[j].price; }
+    }
+    if (total > bestTotal) { best = combo; bestTotal = total; }
+  }
+  clearRoom();
+  best.forEach(item => { roomItems.push(item); });
+  updateRoomUI();
+  showToast(`✓ Best combo added — ₹${bestTotal.toLocaleString('en-IN')}`);
+}
+
+// ── ROOM STYLE PRESETS ──
+const PRESETS = {
+  nordic:     { label: '🏔️ Nordic — Clean lines, light wood, calm whites', items: [1, 3, 5] },
+  boho:       { label: '🌿 Boho — Warm textures, plants, earthy tones',    items: [2, 6, 5] },
+  industrial: { label: '⚙️ Industrial — Raw, dark, edgy statement pieces', items: [1, 4, 5] },
+  luxury:     { label: '👑 Luxury — Velvet, gold accents, bold pieces',    items: [8, 1, 5] },
+  minimal:    { label: '◻️ Minimal — Less is more, only essentials',       items: [3, 2, 5] },
+  japandi:    { label: '🎋 Japandi — Japanese zen meets Scandi simplicity', items: [7, 3, 6] },
+};
+
+function applyPreset(key, evt) {
+  const preset = PRESETS[key];
+  if (!preset) return;
+
+  document.querySelectorAll('.style-preset-btn').forEach(b => b.classList.remove('active'));
+  if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+
+  clearRoom();
+  preset.items.forEach(id => {
+    const item = CATALOG.find(c => c.id === id);
+    if (item) roomItems.push(item);
+  });
+  updateRoomUI();
+
+  const label = document.getElementById('preset-label');
+  if (label) label.textContent = preset.label;
+
+  showToast(`✓ ${preset.label.split('—')[0].trim()} style applied`);
+}
+
+// ── COMPARISON MODE ──
+function addToComparison(item) {
+  if (compareItems.find(c => c.id === item.id)) return;
+  if (compareItems.length >= 2) compareItems.shift();
+  compareItems.push(item);
+  updateCompareUI();
+}
+
+function updateCompareUI() {
+  const count = document.getElementById('compare-count');
+  if (count) count.textContent = `${compareItems.length}/2`;
+
+  [0, 1].forEach(i => {
+    const slot = document.getElementById(`compare-slot-${i}`);
+    if (!slot) return;
+    const item = compareItems[i];
+    slot.innerHTML = item
+      ? `<div style="font-size:24px">${item.emoji}</div><div style="font-size:11px;color:var(--white);margin-top:4px;text-align:center">${item.name}</div><div style="font-size:11px;color:var(--gold);font-family:var(--font-display)">${item.priceDisplay}</div>`
+      : `<span class="muted-text" style="font-size:12px;">Slot ${i+1}</span>`;
+  });
+
+  const result = document.getElementById('compare-result');
+  if (!result) return;
+
+  if (compareItems.length < 2) {
+    result.innerHTML = compareItems.length === 1
+      ? `<p class="muted-text" style="font-size:12px;">Select one more item to compare</p>`
+      : `<p class="muted-text" style="font-size:12px;">Click items in catalog to compare</p>`;
+    return;
+  }
+
+  const [a, b] = compareItems;
+  const cheaper = a.price < b.price ? a : b;
+  const diff = Math.abs(a.price - b.price);
+  const larger = a.dims.w * a.dims.d > b.dims.w * b.dims.d ? a : b;
+
+  result.innerHTML = `
+    <div style="background:var(--dark3);border-radius:12px;padding:12px;border:1px solid var(--border);">
+      <div class="compare-row"><span>Price</span><span style="color:var(--gold)">${a.priceDisplay}</span><span style="color:var(--gold)">${b.priceDisplay}</span></div>
+      <div class="compare-row"><span>Size</span><span>${a.dims.w}×${a.dims.d}m</span><span>${b.dims.w}×${b.dims.d}m</span></div>
+      <div class="compare-row"><span>Category</span><span>${a.category}</span><span>${b.category}</span></div>
+      <div style="margin-top:10px;padding:8px;background:rgba(201,168,76,0.08);border-radius:8px;font-size:12px;color:var(--white-30);">
+        💡 <strong style="color:var(--white)">${cheaper.name}</strong> saves you <strong style="color:#4ADE80">₹${diff.toLocaleString('en-IN')}</strong> · 
+        <strong style="color:var(--white)">${larger.name}</strong> is the larger piece
+      </div>
+    </div>
+  `;
+}
+
+function clearComparison() {
+  compareItems = [];
+  updateCompareUI();
+}
+
 // ── KEYBOARD ──
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {

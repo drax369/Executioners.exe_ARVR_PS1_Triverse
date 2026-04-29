@@ -80,8 +80,8 @@
         >
           <!-- AR launch button (shown on AR-capable devices) -->
           <button slot="ar-button" class="ar-launch-btn">
-  &#9654; Launch in Your Room
-</button>
+            &#9654; Launch in Your Room
+          </button>
 
           <!-- Placeholder (shown when no item selected) -->
           <div class="ar-placeholder" id="ar-placeholder">
@@ -89,12 +89,12 @@
             <p>Select an item from the catalog above to preview it here</p>
           </div>
 
-          <!-- Screenshot/Share bar (shown AFTER AR launch) -->
+          <!-- Share bar (shown AFTER AR launch) -->
           <div class="ar-action-bar" id="ar-action-bar" style="display:none">
-  <button class="ar-action-btn" onclick="shareARView()">
-    📤 <span>Share</span>
-  </button>
-</div>
+            <button class="ar-action-btn" onclick="shareARView()">
+              📤 <span>Share</span>
+            </button>
+          </div>
 
         </model-viewer>
 
@@ -108,32 +108,32 @@
 
       <!-- Controls -->
       <div class="controls-panel">
-        
 
         <!-- Room Builder -->
-<div class="panel-card" id="room-builder-card">
-  <div class="panel-card-header">
-    <span class="panel-dot teal"></span>
-    <h3>My Room</h3>
-    <span id="room-item-count" style="font-size:11px;color:var(--white-30);margin-left:auto;letter-spacing:1px">0 items</span>
-  </div>
-  <div id="room-items-list">
-    <p class="muted-text">Add items from the catalog to build your room</p>
-  </div>
-  <div id="room-footer" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <span style="font-size:13px;color:var(--white-30);">Room Total</span>
-      <span id="room-total" style="font-family:var(--font-display);font-size:24px;color:var(--gold);">₹0</span>
-    </div>
-    <button class="btn-primary full-width" onclick="addRoomToCart()" style="margin-bottom:8px;">
-      Add All to Cart
-    </button>
-    <button class="btn-ghost full-width" onclick="clearRoom()">
-      Clear Room
-    </button>
-  </div>
-</div>
-<!-- Selected Item -->
+        <div class="panel-card" id="room-builder-card">
+          <div class="panel-card-header">
+            <span class="panel-dot teal"></span>
+            <h3>My Room</h3>
+            <span id="room-item-count" style="font-size:11px;color:var(--white-30);margin-left:auto;letter-spacing:1px">0 items</span>
+          </div>
+          <div id="room-items-list">
+            <p class="muted-text">Add items from the catalog to build your room</p>
+          </div>
+          <div id="room-footer" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span style="font-size:13px;color:var(--white-30);">Room Total</span>
+              <span id="room-total" style="font-family:var(--font-display);font-size:24px;color:var(--gold);">₹0</span>
+            </div>
+            <button class="btn-primary full-width" onclick="addRoomToCart()" style="margin-bottom:8px;">
+              Add All to Cart
+            </button>
+            <button class="btn-ghost full-width" onclick="clearRoom()">
+              Clear Room
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected Item -->
         <div class="panel-card" id="selected-card">
           <div class="panel-card-header">
             <span class="panel-dot teal"></span>
@@ -186,11 +186,64 @@
           </button>
         </div>
 
+        <!-- BUDGET PLANNER -->
+        <div class="panel-card" id="budget-planner-card">
+          <div class="panel-card-header">
+            <span class="panel-dot gold"></span>
+            <h3>Budget Planner</h3>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--white-30);display:block;margin-bottom:8px;">Your Budget (₹)</label>
+            <input type="number" id="budget-input" placeholder="e.g. 50000"
+              style="width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;color:var(--white);font-size:15px;font-family:var(--font-body);outline:none;box-sizing:border-box;transition:border-color 0.3s ease;"
+              oninput="updateBudgetPlanner()" />
+          </div>
+          <div id="budget-results">
+            <p class="muted-text">Enter your budget to see what fits</p>
+          </div>
+        </div>
+
+        <!-- ROOM STYLE PRESETS -->
+        <div class="panel-card" id="style-presets-card">
+          <div class="panel-card-header">
+            <span class="panel-dot teal"></span>
+            <h3>Room Style Presets</h3>
+          </div>
+          <div class="style-presets-grid">
+            <button class="style-preset-btn" onclick="applyPreset('nordic', event)">🏔️<span>Nordic</span></button>
+            <button class="style-preset-btn" onclick="applyPreset('boho', event)">🌿<span>Boho</span></button>
+            <button class="style-preset-btn" onclick="applyPreset('industrial', event)">⚙️<span>Industrial</span></button>
+            <button class="style-preset-btn" onclick="applyPreset('luxury', event)">👑<span>Luxury</span></button>
+            <button class="style-preset-btn" onclick="applyPreset('minimal', event)">◻️<span>Minimal</span></button>
+            <button class="style-preset-btn" onclick="applyPreset('japandi', event)">🎋<span>Japandi</span></button>
+          </div>
+          <div id="preset-label" style="font-size:12px;color:var(--gold);margin-top:12px;letter-spacing:1px;min-height:18px;"></div>
+        </div>
+
+        <!-- COMPARISON MODE -->
+        <div class="panel-card" id="comparison-card">
+          <div class="panel-card-header">
+            <span class="panel-dot" style="background:#A78BFA"></span>
+            <h3>Compare Items</h3>
+            <span id="compare-count" style="font-size:11px;color:var(--white-30);margin-left:auto;letter-spacing:1px">0/2</span>
+          </div>
+          <div id="compare-slots" style="display:flex;gap:10px;margin-bottom:12px;">
+            <div class="compare-slot" id="compare-slot-0">
+              <span class="muted-text" style="font-size:12px;">Slot 1</span>
+            </div>
+            <div class="compare-slot" id="compare-slot-1">
+              <span class="muted-text" style="font-size:12px;">Slot 2</span>
+            </div>
+          </div>
+          <div id="compare-result">
+            <p class="muted-text" style="font-size:12px;">Click items in catalog to compare</p>
+          </div>
+          <button class="btn-ghost full-width" onclick="clearComparison()" style="margin-top:8px;">Clear</button>
+        </div>
+
       </div>
     </div>
   </section>
-
-  <!-- IMAGE TO 3D SECTION (injected by image-to-3d.js if present) -->
 
   <!-- AI CHAT -->
   <section id="ai-chat">
