@@ -7,39 +7,53 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { image } = req.body;
-  const HF_TOKEN = process.env.HF_TOKEN;
+  const FAL_KEY = process.env.FAL_KEY;
 
   try {
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
+    // Submit job to fal.ai TripoSR
+    const submitRes = await fetch('https://queue.fal.run/fal-ai/triposr', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${FAL_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        image_url: image,
+        do_remove_background: true,
+        foreground_ratio: 0.85
+      })
+    });
 
-    const response = await fetch(
-      'https://api-inference.huggingface.co/models/stabilityai/TripoSR',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${HF_TOKEN}`,
-          'Content-Type': 'application/octet-stream',
-          'Accept': 'model/gltf-binary'
-        },
-        body: buffer
-      }
-    );
+    const submitted = await submitRes.json();
+    console.log('Submitted:', submitted);
 
-    const contentType = response.headers.get('content-type') || '';
-    console.log('HF response status:', response.status, 'content-type:', contentType);
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('HF error:', errText);
-      return res.status(500).json({ error: errText });
+    if (!submitted.request_id) {
+      return res.status(500).json({ error: 'Failed to submit job', detail: submitted });
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const glbBase64 = Buffer.from(arrayBuffer).toString('base64');
-    const glbDataUrl = `data:model/gltf-binary;base64,${glbBase64}`;
+    // Poll for result
+    const requestId = submitted.request_id;
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
 
-    res.status(200).json({ output: glbDataUrl });
+      const statusRes = await fetch(`https://queue.fal.run/fal-ai/triposr/requests/${requestId}`, {
+        headers: { 'Authorization': `Key ${FAL_KEY}` }
+      });
+      const status = await statusRes.json();
+      console.log(`Poll ${i}:`, status.status);
+
+      if (status.status === 'COMPLETED') {
+        const glbUrl = status.output?.model_mesh?.url || status.output?.mesh?.url;
+        if (glbUrl) return res.status(200).json({ output: glbUrl });
+        return res.status(500).json({ error: 'No GLB in output', output: status.output });
+      }
+
+      if (status.status === 'FAILED') {
+        return res.status(500).json({ error: 'Job failed', detail: status });
+      }
+    }
+
+    res.status(500).json({ error: 'Timed out' });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
