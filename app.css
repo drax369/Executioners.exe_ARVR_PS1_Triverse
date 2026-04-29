@@ -1233,3 +1233,53 @@ section {
   .ar-action-btn span { display: none; }
   .ar-action-btn { padding: 8px 12px; font-size: 18px; }
 }
+/* ── PREMIUM LOCK ── */
+.i3d-premium-lock {
+  background: var(--dark2);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius);
+  padding: 64px 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  max-width: 860px;
+}
+
+.i3d-premium-lock::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201,168,76,0.05), transparent);
+}
+
+.lock-icon {
+  font-size: 48px;
+}
+
+.i3d-premium-lock h3 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--white);
+}
+
+.i3d-premium-lock p {
+  font-size: 15px;
+  color: var(--white-60);
+  line-height: 1.7;
+}
+
+.lock-badge {
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 100px;
+}

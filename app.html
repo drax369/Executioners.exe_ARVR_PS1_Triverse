@@ -244,7 +244,59 @@
       </div>
     </div>
   </section>
+<!-- IMAGE TO 3D -->
+<section id="image-to-3d">
+  <div class="section-header">
+    <p class="section-label">AI 3D Generation</p>
+    <h2 class="section-title" style="font-size:clamp(28px,4vw,48px)">
+      Upload Any Image.<br/><em>Get a 3D Model.</em>
+    </h2>
+    <p class="section-sub" style="margin-bottom:40px">
+      Photograph any furniture or object — our AI converts it into a
+      3D model you can place directly in your room via AR.
+    </p>
+  </div>
 
+  <div class="i3d-layout">
+
+    <div class="i3d-upload-zone" id="i3d-drop-zone">
+      <input type="file" id="i3d-file-input" accept="image/*" style="display:none" onchange="handleImageUpload(event)"/>
+      <div class="i3d-upload-icon">⬆</div>
+      <h3>Drop your image here</h3>
+      <p>or click to browse — JPG, PNG, WEBP supported</p>
+      <button class="btn-primary" onclick="document.getElementById('i3d-file-input').click()">
+        Choose Image
+      </button>
+    </div>
+
+    <div class="i3d-preview-panel" id="i3d-preview-panel" style="display:none">
+      <div class="i3d-image-preview">
+        <img id="i3d-preview-img" src="" alt="Uploaded image"/>
+        <div class="i3d-image-label">Source Image</div>
+      </div>
+      <div class="i3d-arrow">→</div>
+      <div class="i3d-status-box" id="i3d-status-box">
+        <div class="i3d-status-icon" id="i3d-status-icon">◎</div>
+        <div class="i3d-status-text" id="i3d-status-text">Ready to generate</div>
+        <div class="i3d-progress" id="i3d-progress" style="display:none">
+          <div class="i3d-progress-bar" id="i3d-progress-bar"></div>
+        </div>
+        <button class="btn-primary full-width" id="i3d-generate-btn" onclick="generateModel()">
+          Generate 3D Model
+        </button>
+      </div>
+    </div>
+
+    <!-- PREMIUM LOCK OVERLAY -->
+    <div class="i3d-premium-lock">
+      <div class="lock-icon">🔒</div>
+      <h3>Premium Feature</h3>
+      <p>Image → 3D conversion powered by Stability AI.<br/>Available in the Pro plan.</p>
+      <div class="lock-badge">Coming Soon</div>
+    </div>
+
+  </div>
+</section>
   <!-- AI CHAT -->
   <section id="ai-chat">
     <div class="section-header">

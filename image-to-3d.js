@@ -1,4 +1,7 @@
 // ── IMAGE TO 3D FEATURE ──
+document.addEventListener('DOMContentLoaded', () => {
+  setupDragDrop();
+});
 
 // ── INJECT UI INTO APP PAGE ──
 document.addEventListener('DOMContentLoaded', () => {
