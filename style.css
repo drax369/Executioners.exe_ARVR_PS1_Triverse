@@ -842,3 +842,129 @@ section.visible, .feature-card.visible,
   .impact-grid { grid-template-columns: 1fr; }
   .hero-btns { flex-direction: column; align-items: flex-start; }
 }
+/* ── HERO RIGHT SIDE VISUAL ── */
+.hero-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 60px;
+}
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.hero-3d-preview {
+  width: 100%;
+  height: 500px;
+  border-radius: 24px;
+  border: 1px solid rgba(201,168,76,0.2);
+  background: radial-gradient(ellipse at center, rgba(201,168,76,0.08) 0%, transparent 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-3d-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 80%, rgba(201,168,76,0.15) 0%, transparent 60%);
+}
+
+.hero-floating-badge {
+  position: absolute;
+  background: rgba(13,13,13,0.9);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+  backdrop-filter: blur(10px);
+}
+
+.hero-floating-badge.badge-1 {
+  top: 20px;
+  right: 20px;
+}
+
+.hero-floating-badge.badge-2 {
+  bottom: 30px;
+  left: 20px;
+}
+
+/* ── FIX EMPTY GAP ── */
+#how .steps-list {
+  margin-bottom: 0;
+}
+
+/* ── FEATURE CARDS GRID FIX ── */
+.features-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+/* ── AR VIEWER EMPTY STATE ── */
+.ar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  padding: 40px;
+}
+
+.ar-placeholder p {
+  font-size: 14px;
+  max-width: 240px;
+  line-height: 1.6;
+}
+
+.placeholder-ring {
+  width: 80px;
+  height: 80px;
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 50%;
+  position: relative;
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.placeholder-ring::after {
+  content: '🛋️';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* ── CATALOG CARD HOVER GLOW ── */
+.catalog-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.catalog-card:hover {
+  transform: translateY(-6px) !important;
+  box-shadow: 0 20px 60px rgba(201,168,76,0.15) !important;
+}
+
+.catalog-card.active {
+  box-shadow: 0 0 0 2px var(--gold), 0 20px 60px rgba(201,168,76,0.2) !important;
+}
