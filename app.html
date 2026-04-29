@@ -6,97 +6,98 @@
   <title>SpaceViz — AR Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="stylesheet" href="app.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="app.css">
 </head>
 <body class="app-body">
 
-  <!-- LOADER -->
-  <div id="loader">
-    <div class="loader-content">
-      <div class="loader-logo">Space<span>Viz</span></div>
-      <div class="loader-bar"><div class="loader-fill"></div></div>
-      <p>Loading AR Studio...</p>
+  <!-- NAV -->
+  <nav class="app-nav">
+    <a href="index.html" class="nav-logo">SpaceViz</a>
+    <div class="nav-actions">
+      <button class="nav-cart-btn" onclick="openCart()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Cart
+        <span class="cart-count" id="cart-count">0</span>
+      </button>
     </div>
-  </div>
-
-  <!-- NAVBAR -->
-  <nav id="navbar" class="scrolled">
-    <a href="index.html" class="nav-logo">Space<span>Viz</span></a>
-    <div class="nav-links">
-      <a href="#catalog">Catalog</a>
-      <a href="#ar-studio">AR Studio</a>
-      <a href="#ai-chat">AI Chat</a>
-    </div>
-    <button class="nav-cta cart-btn" onclick="openCart()">
-      Cart <span id="cart-count" class="cart-badge">0</span>
-    </button>
   </nav>
 
-  <!-- PAGE HERO -->
-  <div class="app-hero">
-    <div class="hero-orb orb1"></div>
-    <div class="hero-orb orb2"></div>
-    <p class="section-label">AR Studio</p>
-    <h1 class="app-hero-title">Your Room.<br/><em>Your Vision.</em></h1>
-    <p class="app-hero-sub">Select a piece, place it at real scale, check if it fits — all from your browser.</p>
-  </div>
+  <!-- HERO -->
+  <section class="app-hero">
+    <div class="app-hero-badge">AR Studio</div>
+    <h1 class="app-hero-title">Place It. <em>See It.</em> Love It.</h1>
+    <p class="app-hero-sub">Select a piece from our catalog below, preview it in 3D, and launch it into your actual room using AR.</p>
+  </section>
 
   <!-- CATALOG -->
-  <section id="catalog">
+  <section class="catalog-section" id="catalog">
     <div class="section-header">
-      <p class="section-label">Curated Collection</p>
-      <h2 class="section-title" style="font-size:clamp(28px,4vw,48px)">Choose Your Piece</h2>
-      <p class="section-sub" style="margin-bottom:40px">Tap any item to load it in the AR viewer below</p>
+      <h2>Our Collection</h2>
+      <div class="catalog-filters" id="catalog-filters"></div>
     </div>
-    <div class="catalog-grid" id="catalog-grid">
-      <!-- Rendered by app.js -->
-    </div>
+    <div class="catalog-grid" id="catalog-grid"></div>
   </section>
 
   <!-- AR STUDIO -->
-  <section id="ar-studio">
-    <div class="section-header">
-      <p class="section-label">Augmented Reality</p>
-      <h2 class="section-title" style="font-size:clamp(28px,4vw,48px)">AR Viewer</h2>
-    </div>
+  <section class="ar-studio-section" id="ar-studio">
+    <div class="ar-studio-layout">
 
-    <div class="ar-layout">
+      <!-- LEFT: AR VIEWER -->
+      <div class="ar-viewer-col">
+        <div class="ar-viewer-wrap">
+          <model-viewer
+            id="ar-model"
+            src=""
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            camera-controls
+            auto-rotate
+            shadow-intensity="1"
+            exposure="0.9"
+          >
+            <!-- AR launch button (shown by model-viewer on AR-capable devices) -->
+            <button slot="ar-button" class="ar-launch-btn" onclick="onARLaunched()">
+              &#9654; Launch in Your Room
+            </button>
 
-      <!-- Viewer -->
-      <div class="ar-viewer-wrap">
-        <model-viewer
-          id="ar-model"
-          src=""
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-          camera-controls
-          auto-rotate
-          shadow-intensity="1"
-          exposure="0.9"
-        >
-          <button slot="ar-button" class="ar-launch-btn" onclick="onARLaunched()">
+            <!-- Placeholder when no item selected -->
+            <div class="ar-placeholder" id="ar-placeholder">
+              <div class="placeholder-ring"></div>
+              <p>Select an item from the catalog above to preview it here</p>
+            </div>
+
+            <!-- Screenshot / Share bar — shown AFTER AR launched -->
+            <div class="ar-action-bar" id="ar-action-bar" style="display:none">
+              <button class="ar-action-btn" onclick="captureRoom()" title="Screenshot">
+                📸 <span>Screenshot</span>
+              </button>
+              <button class="ar-action-btn" onclick="shareRoom()" title="Share">
+                🔗 <span>Share</span>
+              </button>
+            </div>
+
+          </model-viewer>
+
+          <!-- Fallback "Launch in Your Room" button for non-AR devices / desktop -->
+          <button class="ar-launch-btn-fallback" id="ar-fallback-btn" onclick="onARLaunched()" style="display:none">
             &#9654; Launch in Your Room
           </button>
-          <div class="ar-placeholder" id="ar-placeholder">
-            <div class="placeholder-ring"></div>
-            <p>Select an item from the catalog above to preview it here</p>
-          </div>
-          <div class="ar-action-bar" id="ar-action-bar" style="display:none">
-            <button class="ar-action-btn" onclick="captureRoom()" title="Screenshot">
-              📸 <span>Screenshot</span>
-            </button>
-            <button class="ar-action-btn" onclick="shareRoom()" title="Share">
-              🔗 <span>Share</span>
-            </button>
-          </div>
-        </model-viewer>
+        </div>
       </div>
 
-      <!-- Controls -->
-      <div class="controls-panel">
+      <!-- RIGHT: PANELS -->
+      <div class="ar-panels-col">
+
+        <!-- Controls -->
+        <div class="controls-bar" id="controls-bar">
+          <button class="ctrl-btn active" onclick="setEnv('neutral')" title="Neutral">☀</button>
+          <button class="ctrl-btn" onclick="setEnv('dawn')" title="Dawn">🌅</button>
+          <button class="ctrl-btn" onclick="setEnv('night')" title="Night">🌙</button>
+          <button class="ctrl-btn" onclick="toggleRotate()" title="Rotate" id="rotate-btn">⟳</button>
+        </div>
 
         <!-- Selected Item -->
         <div class="panel-card" id="selected-card">
@@ -110,45 +111,36 @@
         </div>
 
         <!-- Fit Checker -->
-        <div class="panel-card">
+        <div class="panel-card" id="fit-card">
           <div class="panel-card-header">
             <span class="panel-dot gold"></span>
             <h3>Fit Checker</h3>
           </div>
-          <p class="panel-desc">Enter your room size to check if this piece fits perfectly.</p>
-          <div class="input-row">
-            <div class="input-group">
-              <label>Room Width (m)</label>
-              <input type="number" id="room-width" placeholder="e.g. 4.5" step="0.1" min="1" max="20"/>
-            </div>
-            <div class="input-group">
-              <label>Room Length (m)</label>
-              <input type="number" id="room-length" placeholder="e.g. 6.0" step="0.1" min="1" max="20"/>
-            </div>
+          <div id="fit-checker-content">
+            <p class="muted-text">Select an item to check if it fits your room</p>
           </div>
-          <button class="btn-primary full-width" onclick="checkFit()">Check Fit</button>
-          <div id="fit-result" class="fit-result hidden"></div>
         </div>
 
         <!-- Return Risk -->
-        <div class="panel-card" id="risk-card" style="display:none">
+        <div class="panel-card" id="risk-card">
           <div class="panel-card-header">
-            <span class="panel-dot coral"></span>
-            <h3>Purchase Confidence</h3>
+            <span class="panel-dot rose"></span>
+            <h3>Return Risk</h3>
           </div>
-          <div id="risk-result"></div>
+          <div id="return-risk-content">
+            <p class="muted-text">Select an item to assess return risk</p>
+          </div>
         </div>
 
-        <!-- Quick Add -->
-        <div class="panel-card" id="quick-add-card" style="display:none">
+        <!-- Add to Cart -->
+        <div class="panel-card" id="quick-add-card">
           <div class="panel-card-header">
             <span class="panel-dot gold"></span>
-            <h3>Add to Cart</h3>
+            <h3>Quick Add</h3>
           </div>
-          <div id="quick-add-info"></div>
-          <button class="btn-primary full-width" onclick="addCurrentToCart()">
-            Add to Cart
-          </button>
+          <div id="quick-add-content">
+            <p class="muted-text">Select an item to add to cart</p>
+          </div>
         </div>
 
       </div>
@@ -156,105 +148,60 @@
   </section>
 
   <!-- AI CHAT -->
-  <section id="ai-chat">
+  <section class="chat-section" id="ai-chat">
     <div class="section-header">
-      <p class="section-label">AI Design Intelligence</p>
-      <h2 class="section-title" style="font-size:clamp(28px,4vw,48px)">Your Personal<br/>Interior Advisor</h2>
-      <p class="section-sub" style="margin-bottom:40px">Ask anything about your space, style, or budget</p>
+      <h2>AI Design Advisor</h2>
+      <p class="section-sub">Ask anything about furniture, dimensions, or style</p>
     </div>
-
     <div class="chat-wrap">
-      <div class="chat-window" id="chat-window">
-        <div class="chat-msg ai">
-          <div class="chat-avatar">SV</div>
-          <div class="chat-bubble">
-            Hello! I'm your SpaceViz AI design advisor. Tell me about your room —
-            its dimensions, your existing furniture, colour palette, or budget —
-            and I'll suggest the perfect pieces for your space.
-          </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg assistant">
+          <div class="msg-bubble">Hi! I'm your SpaceViz design advisor. Ask me about furniture dimensions, style matching, or whether something will fit your room.</div>
         </div>
       </div>
-      <div class="chat-suggestions">
-        <button class="chip" onclick="fillChat('I placed a leather sofa. What else fits my room?')">Suggest matching items</button>
-        <button class="chip" onclick="fillChat('My room is 3.5m x 4m. Furnish it for ₹50,000.')">Furnish my room</button>
-        <button class="chip" onclick="fillChat('What colour rug goes with a walnut coffee table?')">Colour advice</button>
-        <button class="chip" onclick="fillChat('Best plants for a living room with low sunlight?')">Plant suggestions</button>
-      </div>
       <div class="chat-input-row">
-        <input
-          type="text"
-          id="chat-input"
-          placeholder="Ask your design advisor anything..."
-          onkeydown="if(event.key==='Enter') sendChat()"
-        />
-        <button class="btn-primary" onclick="sendChat()">
-          Send
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <input type="text" id="chat-input" class="chat-input" placeholder="Ask about furniture, dimensions, style..." onkeypress="if(event.key==='Enter') sendChat()" />
+        <button class="chat-send-btn" onclick="sendChat()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
     </div>
   </section>
 
-  <!-- CART MODAL -->
-  <div id="cart-modal" class="modal hidden">
-    <div class="modal-backdrop" onclick="closeCart()"></div>
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3>Your Cart</h3>
-        <button class="modal-close" onclick="closeCart()">&#10005;</button>
+  <!-- IMAGE TO 3D -->
+  <section class="image-to-3d-section" id="image-to-3d-section">
+    <!-- injected by image-to-3d.js -->
+  </section>
+
+  <!-- CART DRAWER -->
+  <div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Total</span>
+        <span id="cart-total">₹0</span>
       </div>
-      <div id="cart-items">
-        <p class="muted-text" style="padding:24px 0">Your cart is empty</p>
-      </div>
-      <div class="modal-footer">
-        <div class="cart-total">Total: <span id="cart-total">₹0</span></div>
-        <button class="btn-primary full-width" onclick="checkout()">
-          Place Order
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
-      </div>
+      <button class="btn-primary full-width" onclick="checkout()">Proceed to Checkout</button>
     </div>
   </div>
 
   <!-- SUCCESS MODAL -->
-  <div id="success-modal" class="modal hidden">
-    <div class="modal-backdrop" onclick="closeSuccess()"></div>
-    <div class="modal-box success-box">
-      <div class="success-icon">&#10003;</div>
-      <h3>Order Confirmed!</h3>
-      <p>Your AR-verified order has been placed.<br/>Expected delivery in 5–7 business days.</p>
-      <div class="success-meta">
-        <div class="success-meta-item">
-          <span>Order ID</span>
-          <strong id="order-id">#SV000</strong>
-        </div>
-        <div class="success-meta-item">
-          <span>AR Verified</span>
-          <strong class="teal-text">Yes</strong>
-        </div>
-      </div>
+  <div class="modal-overlay" id="success-overlay" style="display:none" onclick="closeSuccess()">
+    <div class="success-modal" onclick="event.stopPropagation()">
+      <div class="success-icon">✓</div>
+      <h3>Order Placed!</h3>
+      <p>Your SpaceViz order has been confirmed. You'll receive a confirmation shortly.</p>
       <button class="btn-primary" onclick="closeSuccess()">Continue Shopping</button>
     </div>
   </div>
 
-  <!-- TOAST -->
-  <div id="toast" class="toast hidden"></div>
-
-  <script>
-    window.__ENV__ = {
-      REPLICATE_TOKEN: '%%REPLICATE_TOKEN%%'
-    };
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="app.js"></script>
   <script src="chat.js"></script>
-  <script>
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        document.getElementById('loader').classList.add('hidden');
-      }, 2000);
-    });
-  </script>
   <script src="image-to-3d.js"></script>
 
 </body>
