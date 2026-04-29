@@ -84,9 +84,16 @@
             <div class="placeholder-ring"></div>
             <p>Select an item from the catalog above to preview it here</p>
           </div>
+        <div class="ar-action-bar" id="ar-action-bar" style="display:none">
+            <button class="ar-action-btn" onclick="captureRoom()" title="Screenshot">
+              📸 <span>Screenshot</span>
+            </button>
+            <button class="ar-action-btn" onclick="shareRoom()" title="Share">
+              🔗 <span>Share</span>
+            </button>
+          </div>
         </model-viewer>
       </div>
-
       <!-- Controls -->
       <div class="controls-panel">
 
@@ -130,20 +137,7 @@
           </div>
           <div id="risk-result"></div>
         </div>
-        <!-- Share Room -->
-<div class="panel-card" id="share-card">
-  <div class="panel-card-header">
-    <span class="panel-dot gold"></span>
-    <h3>Share Your Room</h3>
-  </div>
-  <p class="panel-desc">Capture your AR setup and share it with anyone.</p>
-  <button class="btn-primary full-width" onclick="captureRoom()">
-    📸 Screenshot Room
-  </button>
-  <button class="btn-ghost full-width" style="margin-top:8px" onclick="shareRoom()">
-    🔗 Copy Share Link
-  </button>
-</div>
+        
         <!-- Quick Add -->
         <div class="panel-card" id="quick-add-card" style="display:none">
           <div class="panel-card-header">

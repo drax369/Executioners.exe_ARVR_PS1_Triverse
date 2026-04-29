@@ -205,6 +205,8 @@ function selectItem(id) {
 
   // Show toast
   showToast(`${item.emoji} ${item.name} loaded in AR viewer`);
+  // Show AR action bar
+  document.getElementById('ar-action-bar').style.display = 'flex';
 
   // Smooth scroll to AR studio
   setTimeout(() => {
