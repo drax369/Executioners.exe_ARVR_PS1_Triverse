@@ -490,6 +490,48 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// ── SCREENSHOT / SHARE ──
+async function captureRoom() {
+  const viewer = document.getElementById('ar-studio');
+  if (!viewer) return;
+
+  showToast('📸 Capturing room...');
+
+  try {
+    const canvas = await html2canvas(viewer, {
+      backgroundColor: '#0d0d0d',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true
+    });
+
+    // Download image
+    const link = document.createElement('a');
+    link.download = `SpaceViz-Room-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    showToast('✓ Room screenshot saved!');
+  } catch (err) {
+    showToast('Screenshot failed — try again');
+    console.error(err);
+  }
+}
+
+function shareRoom() {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({
+      title: 'My SpaceViz Room',
+      text: 'Check out my AR furniture layout on SpaceViz!',
+      url
+    });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('🔗 Link copied to clipboard!');
+    });
+  }
+}
 // ── KEYBOARD SHORTCUTS ──
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {

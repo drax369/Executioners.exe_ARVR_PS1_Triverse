@@ -130,7 +130,20 @@
           </div>
           <div id="risk-result"></div>
         </div>
-
+        <!-- Share Room -->
+<div class="panel-card" id="share-card">
+  <div class="panel-card-header">
+    <span class="panel-dot gold"></span>
+    <h3>Share Your Room</h3>
+  </div>
+  <p class="panel-desc">Capture your AR setup and share it with anyone.</p>
+  <button class="btn-primary full-width" onclick="captureRoom()">
+    📸 Screenshot Room
+  </button>
+  <button class="btn-ghost full-width" style="margin-top:8px" onclick="shareRoom()">
+    🔗 Copy Share Link
+  </button>
+</div>
         <!-- Quick Add -->
         <div class="panel-card" id="quick-add-card" style="display:none">
           <div class="panel-card-header">
@@ -146,7 +159,7 @@
       </div>
     </div>
   </section>
-
+  
   <!-- AI CHAT -->
   <section id="ai-chat">
     <div class="section-header">
@@ -236,6 +249,7 @@
     REPLICATE_TOKEN: '%%REPLICATE_TOKEN%%'
   };
 </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="app.js"></script>
   <script src="chat.js"></script>
   <script>
